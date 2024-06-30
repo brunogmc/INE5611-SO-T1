@@ -1,6 +1,8 @@
+
 import pygame
 import random
 import math
+import threading
 
 # Inicialização do Pygame
 pygame.init()
@@ -9,7 +11,7 @@ pygame.init()
 screen_width = 800
 screen_height = 600
 screen = pygame.display.set_mode((screen_width, screen_height))
-pygame.display.set_caption('Bateria Antiaérea')
+pygame.display.set_caption('Jogo: Antiaérias contra os aliens')
 
 # Cores
 black = (0, 0, 0)
@@ -27,11 +29,20 @@ battery_angle = 90
 # Configurações dos tiros
 bullets = []
 bullet_speed = 7
+max_bullets = 10  # Número máximo de balas carregadas
+current_bullets = max_bullets  # Balas disponíveis inicialmente
 
-# Configurações das naves alienígenas (aumentadas)
-alien_width = 60  # Aumentado de 40 para 60
-alien_height = 30  # Aumentado de 20 para 30
+# Configurações das naves alienígenas 
+alien_width = 100  # Aumentado de 60 para 100
+alien_height = 50  
 aliens = []
+alien_lock = threading.Lock()  # Lock para acesso thread-safe à lista de aliens
+
+# Parâmetros do jogo
+total_aliens = 20  # Quantidade de naves alienígenas
+aliens_spawned = 0
+aliens_destroyed = 0
+aliens_reached_ground = 0
 
 # Função para desenhar a bateria
 def draw_battery(x, y, angle):
@@ -46,10 +57,6 @@ def draw_battery(x, y, angle):
     elif angle == 0:  # Horizontal para a direita
         pygame.draw.rect(screen, red, (x, y - battery_width // 2, battery_height, battery_width))
 
-# Função para desenhar as naves alienígenas
-def draw_aliens(aliens):
-    for alien in aliens:
-        pygame.draw.rect(screen, green, (alien[0], alien[1], alien_width, alien_height))
 
 # Função para desenhar os tiros
 def draw_bullets(bullets):
@@ -62,16 +69,54 @@ def move_bullets(bullets):
         bullet[0] += bullet[2]
         bullet[1] += bullet[3]
 
+# Classe para a nave alienígena
+class Alien(threading.Thread):
+    def __init__(self, x, y):
+        threading.Thread.__init__(self)
+        self.x = x
+        self.y = y
+        self.alive = True  # Controle de vida da nave
+
+    def run(self):
+        global aliens_reached_ground
+        while self.alive and self.y < screen_height:
+            self.y += 2  # Move a nave para baixo
+            pygame.time.wait(50)  # Espera um pouco para suavizar o movimento
+
+        if self.alive:
+            aliens_reached_ground += 1  # Incrementa contador de naves que chegaram ao solo
+
+        # Remover a nave da lista de aliens quando morrer
+        with alien_lock:
+            if self in aliens:
+                aliens.remove(self)
+
+    def draw(self):
+        pygame.draw.rect(screen, green, (self.x, self.y, alien_width, alien_height))
+
+    def die(self):
+        global aliens_destroyed
+        self.alive = False  # Marca a nave como morta
+        aliens_destroyed += 1  # Incrementa contador de naves destruídas
+
 # Função para detectar colisões
 def check_collision(bullets, aliens):
     for bullet in bullets:
         bullet_rect = pygame.Rect(bullet[0] - 5, bullet[1] - 5, 10, 10)  # Cria um retângulo ao redor da bala
         for alien in aliens:
-            alien_rect = pygame.Rect(alien[0], alien[1], alien_width, alien_height)
+            alien_rect = pygame.Rect(alien.x, alien.y, alien_width, alien_height)
             if bullet_rect.colliderect(alien_rect):  # Verifica a colisão
                 bullets.remove(bullet)
-                aliens.remove(alien)
+                alien.die()  # Mata a nave (encerra a thread)
                 break
+
+# Função para verificar o estado do jogo
+def check_game_state():
+    if aliens_destroyed >= total_aliens // 2:
+        return "win"
+    elif aliens_reached_ground >= total_aliens // 2:
+        return "lose"
+    return "ongoing"
 
 # Loop do jogo
 running = True
@@ -93,44 +138,69 @@ while running:
                 battery_angle = 45
             elif event.key == pygame.K_e:
                 battery_angle = 135
+            elif event.key == pygame.K_s:
+                current_bullets = max_bullets  # Recarga de balas
             elif event.key == pygame.K_SPACE:
-                # Adicionar um tiro na direção atual
-                angle_rad = math.radians(battery_angle)
-                if battery_angle == 45:
-                    bullet_dx = -bullet_speed * math.cos(math.radians(45))
-                    bullet_dy = -bullet_speed * math.sin(math.radians(45))
-                elif battery_angle == 135:
-                    bullet_dx = bullet_speed * math.cos(math.radians(45))
-                    bullet_dy = -bullet_speed * math.sin(math.radians(45))
-                else:
-                    bullet_dx = bullet_speed * math.cos(angle_rad)
-                    bullet_dy = -bullet_speed * math.sin(angle_rad)
-                bullets.append([battery_x, battery_y, bullet_dx, bullet_dy])
-    
-    # Adicionar novas naves alienígenas
-    if random.randint(1, 50) == 1:
-        alien_x = random.randint(0, screen_width - alien_width)
-        aliens.append([alien_x, 0])
-    
-    # Atualizar posição das naves alienígenas
-    for alien in aliens:
-        alien[1] += 2
-    
-    # Remover naves que saíram da tela
-    aliens = [alien for alien in aliens if alien[1] < screen_height]
+                # Disparo, mas só se houver balas disponíveis
+                if current_bullets > 0:
+                    angle_rad = math.radians(battery_angle)
+                    if battery_angle == 45:
+                        bullet_dx = -bullet_speed * math.cos(math.radians(45))
+                        bullet_dy = -bullet_speed * math.sin(math.radians(45))
+                    elif battery_angle == 135:
+                        bullet_dx = bullet_speed * math.cos(math.radians(45))
+                        bullet_dy = -bullet_speed * math.sin(math.radians(45))
+                    else:
+                        bullet_dx = bullet_speed * math.cos(angle_rad)
+                        bullet_dy = -bullet_speed * math.sin(angle_rad)
+                    bullets.append([battery_x, battery_y, bullet_dx, bullet_dy])
+                    current_bullets -= 1  # Reduzir contagem de balas
 
+    # Adicionar novas naves alienígenas
+    if aliens_spawned < total_aliens and random.randint(1, 50) == 1:
+        alien_x = random.randint(0, screen_width - alien_width)
+        new_alien = Alien(alien_x, 0)
+        with alien_lock:
+            aliens.append(new_alien)
+        new_alien.start()
+        aliens_spawned += 1
+    
     # Mover os tiros
     move_bullets(bullets)
 
     # Verificar colisões entre tiros e naves
-    check_collision(bullets, aliens)
+    with alien_lock:
+        check_collision(bullets, aliens)
 
     # Desenhar a bateria, naves alienígenas e tiros
     draw_battery(battery_x, battery_y, battery_angle)
-    draw_aliens(aliens)
+
+    with alien_lock:
+        for alien in aliens:
+            alien.draw()
+
     draw_bullets(bullets)
+
+    # Mostrar balas restantes na tela
+    font = pygame.font.SysFont(None, 24)
+    ammo_text = font.render(f'Balas: {current_bullets}/{max_bullets}', True, white)
+    screen.blit(ammo_text, (10, 10))
+
+    # Verificar estado do jogo
+    game_state = check_game_state()
+    if game_state != "ongoing":
+        running = False
+        result_text = "Vitória!" if game_state == "win" else "Derrota!"
+        result_display = font.render(result_text, True, white)
+        screen.blit(result_display, (screen_width // 2 - 50, screen_height // 2))
+        pygame.display.flip()
+        pygame.time.wait(3000)  # Espera 3 segundos antes de fechar
 
     pygame.display.flip()
     pygame.time.Clock().tick(60)
+
+# Encerrar todas as threads de naves ao finalizar o jogo
+for alien in aliens:
+    alien.die()
 
 pygame.quit()
