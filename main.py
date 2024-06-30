@@ -1,4 +1,3 @@
-
 import pygame
 import random
 import math
@@ -33,10 +32,11 @@ max_bullets = 10  # Número máximo de balas carregadas
 current_bullets = max_bullets  # Balas disponíveis inicialmente
 
 # Configurações das naves alienígenas 
-alien_width = 100  # Aumentado de 60 para 100
+alien_width = 100
 alien_height = 50  
 aliens = []
 alien_lock = threading.Lock()  # Lock para acesso thread-safe à lista de aliens
+bullet_lock = threading.Lock()  # Lock para acesso thread-safe à lista de balas
 
 # Parâmetros do jogo
 total_aliens = 20  # Quantidade de naves alienígenas
@@ -56,7 +56,6 @@ def draw_battery(x, y, angle):
         pygame.draw.rect(screen, red, (x - battery_height, y - battery_width // 2, battery_height, battery_width))
     elif angle == 0:  # Horizontal para a direita
         pygame.draw.rect(screen, red, (x, y - battery_width // 2, battery_height, battery_width))
-
 
 # Função para desenhar os tiros
 def draw_bullets(bullets):
@@ -101,12 +100,14 @@ class Alien(threading.Thread):
 
 # Função para detectar colisões
 def check_collision(bullets, aliens):
-    for bullet in bullets:
+    for bullet in bullets[:]:  # Usamos [:] para uma cópia da lista, pois estamos removendo itens
         bullet_rect = pygame.Rect(bullet[0] - 5, bullet[1] - 5, 10, 10)  # Cria um retângulo ao redor da bala
-        for alien in aliens:
+        for alien in aliens[:]:  # Usamos [:] para uma cópia da lista, pois estamos removendo itens
             alien_rect = pygame.Rect(alien.x, alien.y, alien_width, alien_height)
             if bullet_rect.colliderect(alien_rect):  # Verifica a colisão
-                bullets.remove(bullet)
+                with bullet_lock:
+                    if bullet in bullets:
+                        bullets.remove(bullet)
                 alien.die()  # Mata a nave (encerra a thread)
                 break
 
@@ -118,8 +119,20 @@ def check_game_state():
         return "lose"
     return "ongoing"
 
+# Função para recarregar balas em uma thread secundária
+def reload_bullets_thread():
+    global current_bullets
+    while current_bullets < max_bullets:
+        pygame.time.wait(1000)  # Espera 1 segundo
+        with bullet_lock:
+            current_bullets = min(current_bullets + 1, max_bullets)
+
+# Iniciar a thread de recarga de balas
+reload_thread = None
+
 # Loop do jogo
 running = True
+
 while running:
     screen.fill(black)  # Limpar a tela
     
@@ -138,8 +151,6 @@ while running:
                 battery_angle = 45
             elif event.key == pygame.K_e:
                 battery_angle = 135
-            elif event.key == pygame.K_s:
-                current_bullets = max_bullets  # Recarga de balas
             elif event.key == pygame.K_SPACE:
                 # Disparo, mas só se houver balas disponíveis
                 if current_bullets > 0:
@@ -153,8 +164,15 @@ while running:
                     else:
                         bullet_dx = bullet_speed * math.cos(angle_rad)
                         bullet_dy = -bullet_speed * math.sin(angle_rad)
-                    bullets.append([battery_x, battery_y, bullet_dx, bullet_dy])
+                    
+                    with bullet_lock:
+                        bullets.append([battery_x, battery_y, bullet_dx, bullet_dy])
                     current_bullets -= 1  # Reduzir contagem de balas
+            elif event.key == pygame.K_s:
+                # Iniciar a thread de recarga de balas se ainda não estiver rodando
+                if reload_thread is None or not reload_thread.is_alive():
+                    reload_thread = threading.Thread(target=reload_bullets_thread)
+                    reload_thread.start()
 
     # Adicionar novas naves alienígenas
     if aliens_spawned < total_aliens and random.randint(1, 50) == 1:
@@ -198,9 +216,5 @@ while running:
 
     pygame.display.flip()
     pygame.time.Clock().tick(60)
-
-# Encerrar todas as threads de naves ao finalizar o jogo
-for alien in aliens:
-    alien.die()
 
 pygame.quit()
