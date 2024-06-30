@@ -30,13 +30,13 @@ battery_angle = 90
 bullets = []
 bullet_speed = 7
 max_bullets = 10  # Número máximo de balas carregadas
-current_bullets = max_bullets  # Balas disponíveis inicialmente
+current_bullets = 0  # Balas disponíveis inicialmente
 
 # Semáforo para controle de produção iniciado com o número máximo de balas
 produce_semaphore = threading.Semaphore(max_bullets)
 
 # Semáforo para controle de consumo iniciado com 0
-consume_semaphore = threading.Semaphore(0)
+consume_semaphore = threading.Semaphore()
 
 # Buffer para produção e consumo de balas
 bullet_buffer = []
@@ -148,7 +148,20 @@ def consume_bullet():
     consume_semaphore.acquire()
     # Consome uma bala
     bullet_buffer.pop()  # Remove uma bala do buffer
-    current_bullets -= 1
+    angle_rad = math.radians(battery_angle)
+    if battery_angle == 45:
+        bullet_dx = -bullet_speed * math.cos(math.radians(45))
+        bullet_dy = -bullet_speed * math.sin(math.radians(45))
+    elif battery_angle == 135:
+        bullet_dx = bullet_speed * math.cos(math.radians(45))
+        bullet_dy = -bullet_speed * math.sin(math.radians(45))
+    else:
+        bullet_dx = bullet_speed * math.cos(angle_rad)
+        bullet_dy = -bullet_speed * math.sin(angle_rad)
+    
+    with bullet_lock:
+        bullets.append([battery_x, battery_y, bullet_dx, bullet_dy])
+    current_bullets -= 1  # Reduzir contagem de balas
     print(f"Bala consumida. Total: {current_bullets}/{max_bullets}")
     produce_semaphore.release()
     time.sleep(0.2)  # Atraso após cada consumo
@@ -199,20 +212,6 @@ while running:
                     if shoot_thread is None or not shoot_thread.is_alive():
                         shoot_thread = threading.Thread(target=consume_bullet)
                         shoot_thread.start()
-                    angle_rad = math.radians(battery_angle)
-                    if battery_angle == 45:
-                        bullet_dx = -bullet_speed * math.cos(math.radians(45))
-                        bullet_dy = -bullet_speed * math.sin(math.radians(45))
-                    elif battery_angle == 135:
-                        bullet_dx = bullet_speed * math.cos(math.radians(45))
-                        bullet_dy = -bullet_speed * math.sin(math.radians(45))
-                    else:
-                        bullet_dx = bullet_speed * math.cos(angle_rad)
-                        bullet_dy = -bullet_speed * math.sin(angle_rad)
-                    
-                    with bullet_lock:
-                        bullets.append([battery_x, battery_y, bullet_dx, bullet_dy])
-                    current_bullets -= 1  # Reduzir contagem de balas
             elif event.key == pygame.K_s:
                 # Iniciar a thread de recarga de balas se ainda não estiver rodando
                 if reload_thread is None or not reload_thread.is_alive():
