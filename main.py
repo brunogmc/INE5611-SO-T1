@@ -153,14 +153,18 @@ def consume_bullet():
     produce_semaphore.release()
     time.sleep(0.2)  # Atraso após cada consumo
 
-
 # Função para recarregar balas em uma thread secundária
 def reload_bullets_thread():
+    global reload_thread
+
     count = 0
     while count < max_bullets:
         produce_bullet()
+        count += 1
+    
+    reload_thread = None  # Reinicia a referência da thread após terminar
 
-
+    print("Recarga concluída.")
 
 # Iniciar a thread de recarga de balas
 reload_thread = None
