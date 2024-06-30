@@ -2,6 +2,7 @@ import pygame
 import random
 import math
 import threading
+import time
 
 # Inicialização do Pygame
 pygame.init()
@@ -30,6 +31,15 @@ bullets = []
 bullet_speed = 7
 max_bullets = 10  # Número máximo de balas carregadas
 current_bullets = max_bullets  # Balas disponíveis inicialmente
+
+# Semáforo para controle de produção iniciado com o número máximo de balas
+produce_semaphore = threading.Semaphore(max_bullets)
+
+# Semáforo para controle de consumo iniciado com 0
+consume_semaphore = threading.Semaphore(0)
+
+# Buffer para produção e consumo de balas
+bullet_buffer = []
 
 # Configurações das naves alienígenas 
 alien_width = 100
@@ -119,16 +129,44 @@ def check_game_state():
         return "lose"
     return "ongoing"
 
+# Função produtora de balas
+def produce_bullet():
+    global current_bullets, bullet_buffer
+
+    produce_semaphore.acquire()
+    # Produz uma bala
+    time.sleep(0.5)  # Simula um tempo para produzir uma bala
+    bullet_buffer.append("bullet")
+    current_bullets += 1
+    print(f"Bala produzida. Total: {current_bullets}/{max_bullets}")
+    consume_semaphore.release()
+
+# Função consumidora de balas (tiro)
+def consume_bullet():
+    global current_bullets, bullet_buffer
+
+    consume_semaphore.acquire()
+    # Consome uma bala
+    bullet_buffer.pop()  # Remove uma bala do buffer
+    current_bullets -= 1
+    print(f"Bala consumida. Total: {current_bullets}/{max_bullets}")
+    produce_semaphore.release()
+    time.sleep(0.2)  # Atraso após cada consumo
+
+
 # Função para recarregar balas em uma thread secundária
 def reload_bullets_thread():
-    global current_bullets
-    while current_bullets < max_bullets:
-        pygame.time.wait(1000)  # Espera 1 segundo
-        with bullet_lock:
-            current_bullets = min(current_bullets + 1, max_bullets)
+    count = 0
+    while count < max_bullets:
+        produce_bullet()
+
+
 
 # Iniciar a thread de recarga de balas
 reload_thread = None
+
+# Iniciar a thread de consumo de balas
+shoot_thread = None
 
 # Loop do jogo
 running = True
@@ -154,6 +192,9 @@ while running:
             elif event.key == pygame.K_SPACE:
                 # Disparo, mas só se houver balas disponíveis
                 if current_bullets > 0:
+                    if shoot_thread is None or not shoot_thread.is_alive():
+                        shoot_thread = threading.Thread(target=consume_bullet)
+                        shoot_thread.start()
                     angle_rad = math.radians(battery_angle)
                     if battery_angle == 45:
                         bullet_dx = -bullet_speed * math.cos(math.radians(45))
