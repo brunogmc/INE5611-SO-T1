@@ -19,6 +19,11 @@ white = (255, 255, 255)
 red = (255, 0, 0)
 green = (0, 255, 0)
 
+# Paremetros de dificuldades dos modos de jogo
+mode_bullet = 20
+mode_aliens = 10
+mode_alien_speed = 4
+
 # Configurações da bateria antiaérea
 battery_x = screen_width // 2
 battery_y = screen_height - 50
@@ -29,7 +34,7 @@ battery_angle = 90
 # Configurações dos tiros
 bullets = []
 bullet_speed = 7
-max_bullets = 10  # Número máximo de balas carregadas
+max_bullets = mode_bullet  # Número máximo de balas carregadas
 current_bullets = 0  # Balas disponíveis inicialmente
 
 # Semáforo para controle de produção iniciado com o número máximo de balas
@@ -49,7 +54,7 @@ alien_lock = threading.Lock()  # Lock para acesso thread-safe à lista de aliens
 bullet_lock = threading.Lock()  # Lock para acesso thread-safe à lista de balas
 
 # Parâmetros do jogo
-total_aliens = 20  # Quantidade de naves alienígenas
+total_aliens = mode_aliens  # Quantidade de naves alienígenas
 aliens_spawned = 0
 aliens_destroyed = 0
 aliens_reached_ground = 0
@@ -89,7 +94,7 @@ class Alien(threading.Thread):
     def run(self):
         global aliens_reached_ground
         while self.alive and self.y < screen_height:
-            self.y += 2  # Move a nave para baixo
+            self.y += mode_alien_speed  # Move a nave para baixo
             pygame.time.wait(50)  # Espera um pouco para suavizar o movimento
 
         if self.alive:
