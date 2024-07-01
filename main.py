@@ -11,7 +11,7 @@ pygame.init()
 screen_width = 800
 screen_height = 600
 screen = pygame.display.set_mode((screen_width, screen_height))
-pygame.display.set_caption('Jogo: Antiaérias contra os aliens')
+pygame.display.set_caption('Jogo: Antiaéreas contra os aliens')
 
 # Cores
 black = (0, 0, 0)
@@ -19,10 +19,73 @@ white = (255, 255, 255)
 red = (255, 0, 0)
 green = (0, 255, 0)
 
+# Variáveis de dificuldade
+difficulty = None
+font = pygame.font.SysFont(None, 36)
+
+# Função para desenhar o menu inicial
+def draw_menu():
+    screen.fill(black)
+    title_text = font.render('Escolha a dificuldade:', True, white)
+    screen.blit(title_text, (screen_width // 2 - 140, screen_height // 2 - 50))
+
+    # Opções de dificuldade
+    easy_text = font.render('Fácil (pressione 1)', True, white)
+    screen.blit(easy_text, (screen_width // 2 - 120, screen_height // 2))
+
+    medium_text = font.render('Médio (pressione 2)', True, white)
+    screen.blit(medium_text, (screen_width // 2 - 130, screen_height // 2 + 40))
+
+    hard_text = font.render('Difícil (pressione 3)', True, white)
+    screen.blit(hard_text, (screen_width // 2 - 130, screen_height // 2 + 80))
+
+    pygame.display.flip()
+
+# Função para processar a escolha do usuário
+def process_menu_input(event):
+    global difficulty
+    if event.type == pygame.KEYDOWN:
+        if event.key == pygame.K_1:
+            difficulty = "easy"
+        elif event.key == pygame.K_2:
+            difficulty = "medium"
+        elif event.key == pygame.K_3:
+            difficulty = "hard"
+
+# Loop do menu inicial
+show_menu = True
+clock = pygame.time.Clock()
+
+while show_menu:
+    draw_menu()
+    
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            show_menu = False
+        elif event.type == pygame.KEYDOWN:
+            process_menu_input(event)
+
+    if difficulty is not None:
+        show_menu = False
+
+    clock.tick(30)
+
+# Aqui, você pode iniciar o jogo com base na dificuldade escolhida
+print(f'Dificuldade escolhida: {difficulty}')
+
 # Paremetros de dificuldades dos modos de jogo
-mode_bullet = 20
-mode_aliens = 10
-mode_alien_speed = 4
+if difficulty == "easy":
+    mode_bullet = 20
+    total_aliens = 10
+    mode_alien_speed = 4
+elif difficulty == "medium":
+    mode_bullet = 10  # Redução pela metade das balas
+    total_aliens = 15  # Mais naves alienígenas
+    mode_alien_speed = 5  # Naves mais rápidas
+elif difficulty == "hard":
+    mode_bullet = 5  # Menos balas que no médio
+    total_aliens = 20  # Aumenta ainda mais o número de naves
+    mode_alien_speed = 6  # Naves muito mais rápidas
 
 # Configurações da bateria antiaérea
 battery_x = screen_width // 2
@@ -54,7 +117,6 @@ alien_lock = threading.Lock()  # Lock para acesso thread-safe à lista de aliens
 bullet_lock = threading.Lock()  # Lock para acesso thread-safe à lista de balas
 
 # Parâmetros do jogo
-total_aliens = mode_aliens  # Quantidade de naves alienígenas
 aliens_spawned = 0
 aliens_destroyed = 0
 aliens_reached_ground = 0
