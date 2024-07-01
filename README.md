@@ -12,6 +12,7 @@ O jogador deve mirar e atirar nas naves enquanto gerencia a munição limitada. 
 ## Autores 
 
 Esse jogo foi desenvolvido na matéria de Sistema de Informação da UFSC no semestre de 2024-1 pelo alunos :
+
 Bruno Garbatzki Madeira Cunha
 Juliana dos Santos 
 
