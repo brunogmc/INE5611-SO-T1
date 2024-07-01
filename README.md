@@ -43,8 +43,8 @@ Para rodar o jogo, você precisará do Python 3.x e das seguintes bibliotecas:
    No terminal, navegue até a pasta do projeto e execute:
 
    ```bash
-   python game.py
-   ```
+   python3 main.py
+   ```   
 
    Isso iniciará o jogo e abrirá a janela do Pygame.
 
