@@ -1,21 +1,81 @@
-Requisitos
-Python 3.6 ou superior
-Biblioteca pygame
 
-Instalação
-Instale o Python 3: Certifique-se de ter o Python 3 instalado no seu sistema. Você pode baixá-lo aqui.
+# Jogo: Antiaéreas contra os aliens
 
-Instale o Pygame: Abra o terminal ou prompt de comando e execute:
+## Descrição
 
-pip install pygame
+"Antiaéreas contra os aliens" é um jogo desenvolvido em Python usando a biblioteca Pygame. O objetivo do jogo é defender a Terra de naves alienígenas usando uma bateria antiaérea. O jogador pode escolher entre três níveis de dificuldade: Fácil, Médio e Difícil. 
 
-Como Jogar
-Baixe o Código: Baixe o script Python e salve-o no seu computador.
+O jogador deve mirar e atirar nas naves enquanto gerencia a munição limitada. Se o número de naves destruídas for maior que o número de naves que alcançarem o solo, o jogador vence.
 
-Execute o Jogo:
+## Requisitos
 
-Abra o terminal ou prompt de comando.
-Navegue até o diretório onde o script está salvo.
-Execute o script com o comando:
+Para rodar o jogo, você precisará do Python 3.x e das seguintes bibliotecas:
 
-python3 main.py
+- [Pygame](https://www.pygame.org/)
+- [Threading](https://docs.python.org/3/library/threading.html)
+- [Time](https://docs.python.org/3/library/time.html)
+- [Math](https://docs.python.org/3/library/math.html)
+- [Random](https://docs.python.org/3/library/random.html)
+
+## Instalação
+
+1. **Clone o repositório ou baixe os arquivos**
+
+   ```bash
+   git clone https://github.com/seu-usuario/antiaereas-contra-aliens.git
+   cd antiaereas-contra-aliens
+   ```
+
+2. **Instale as dependências**
+
+   Certifique-se de ter o Python 3.x instalado. Você pode instalar o Pygame usando `pip`:
+
+   ```bash
+   pip install pygame
+   ```
+
+3. **Baixe a imagem da nave alienígena**
+
+   Salve uma imagem de nave alienígena com o nome `alien-ship.jpeg` na pasta do projeto. Você pode usar qualquer imagem, mas ela deve ser redimensionada para 100x50 pixels para melhor visualização no jogo.
+
+## Como Jogar
+
+1. **Execute o jogo**
+
+   No terminal, navegue até a pasta do projeto e execute:
+
+   ```bash
+   python game.py
+   ```
+
+   Isso iniciará o jogo e abrirá a janela do Pygame.
+
+2. **Escolha a dificuldade**
+
+   Use as teclas `1`, `2`, ou `3` para selecionar o nível de dificuldade:
+   - `1`: Fácil
+   - `2`: Médio
+   - `3`: Difícil
+
+3. **Controles do jogo**
+
+   - `a, q, w, e, r`: Ajustam a mira da bateria antiaérea.
+   - `Espaço`: Atira uma bala, se houver balas disponíveis.
+   - `s`: Recarrega a munição.
+
+4. **Objetivo do jogo**
+
+   - Destrua o maior número possível de naves alienígenas antes que elas alcancem o solo.
+   - Se metade das naves for destruída, você ganha.
+   - Se metade das naves alcançar o solo, você perde.
+
+## Recursos
+
+- **Movimento e tiro controlados pelo jogador**
+- **Níveis de dificuldade ajustáveis**
+- **Gerenciamento de munição com recarga automática**
+
+## Contribuição
+
+Se você quiser contribuir para o projeto, sinta-se à vontade para abrir uma pull request ou enviar sugestões na seção de Issues.
+
