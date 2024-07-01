@@ -39,6 +39,17 @@ def draw_menu():
     hard_text = font.render('Difícil (pressione 3)', True, white)
     screen.blit(hard_text, (screen_width // 2 - 130, screen_height // 2 + 80))
 
+    # instruções
+    controlls = font.render('Controles: ', True, white)
+    screen.blit(controlls, (screen_width // 2 - 140, screen_height // 2 + 140))
+    controlls2 = font.render('Para mirar utilize as teclas: a, q, w, e, r', True, white)
+    screen.blit(controlls2, (screen_width // 2 - 140, screen_height // 2 + 180))
+    controlls3 = font.render('Para Recarregar utilize a tecla: s', True, white)
+    screen.blit(controlls3, (screen_width // 2 - 140, screen_height // 2 + 210))
+    controlls4 = font.render('Para atirar utilize a tecla: Espaço', True, white)
+    screen.blit(controlls4, (screen_width // 2 - 140, screen_height // 2 + 240))
+
+
     pygame.display.flip()
 
 # Função para processar a escolha do usuário
@@ -115,6 +126,9 @@ alien_height = 50
 aliens = []
 alien_lock = threading.Lock()  # Lock para acesso thread-safe à lista de aliens
 bullet_lock = threading.Lock()  # Lock para acesso thread-safe à lista de balas
+# Carregar a imagem da nave alienígena
+alien_image = pygame.image.load("alien-ship.jpeg")
+alien_image = pygame.transform.scale(alien_image, (alien_width, alien_height))  # Redimensiona a imagem
 
 # Parâmetros do jogo
 aliens_spawned = 0
@@ -168,7 +182,8 @@ class Alien(threading.Thread):
                 aliens.remove(self)
 
     def draw(self):
-        pygame.draw.rect(screen, green, (self.x, self.y, alien_width, alien_height))
+        # Desenhar a nave alienígena usando a imagem
+        screen.blit(alien_image, (self.x, self.y))
 
     def die(self):
         global aliens_destroyed
@@ -318,6 +333,8 @@ while running:
     # Verificar estado do jogo
     game_state = check_game_state()
     if game_state != "ongoing":
+
+        screen.fill(black)
         running = False
         result_text = "Vitória!" if game_state == "win" else "Derrota!"
         result_display = font.render(result_text, True, white)
