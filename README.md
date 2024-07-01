@@ -9,6 +9,12 @@ O objetivo deste trabalho é aplicar os conceitos de threads, exclusão mútua e
 
 O jogador deve mirar e atirar nas naves enquanto gerencia a munição limitada. Se o número de naves destruídas for maior que o número de naves que alcançarem o solo, o jogador vence.
 
+## Autores 
+
+Esse jogo foi desenvolvido na matéria de Sistema de Informação da UFSC no semestre de 2024-1 pelo alunos :
+Bruno Garbatzki Madeira Cunha
+Juliana dos Santos 
+
 ## Requisitos
 
 Para rodar o jogo, você precisará do Python 3.x e das seguintes bibliotecas:
