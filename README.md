@@ -3,6 +3,8 @@
 
 ## Descrição
 
+O objetivo deste trabalho é aplicar os conceitos de threads, exclusão mútua e coordenação de processos por meio do projeto e implementação de um jogo
+
 "Antiaéreas contra os aliens" é um jogo desenvolvido em Python usando a biblioteca Pygame. O objetivo do jogo é defender a Terra de naves alienígenas usando uma bateria antiaérea. O jogador pode escolher entre três níveis de dificuldade: Fácil, Médio e Difícil. 
 
 O jogador deve mirar e atirar nas naves enquanto gerencia a munição limitada. Se o número de naves destruídas for maior que o número de naves que alcançarem o solo, o jogador vence.
@@ -22,8 +24,8 @@ Para rodar o jogo, você precisará do Python 3.x e das seguintes bibliotecas:
 1. **Clone o repositório ou baixe os arquivos**
 
    ```bash
-   git clone https://github.com/seu-usuario/antiaereas-contra-aliens.git
-   cd antiaereas-contra-aliens
+   git clone https://github.com/brunogmc/INE5611-SO-T1.git
+   cd INE5611-SO-T1
    ```
 
 2. **Instale as dependências**
@@ -33,10 +35,6 @@ Para rodar o jogo, você precisará do Python 3.x e das seguintes bibliotecas:
    ```bash
    pip install pygame
    ```
-
-3. **Baixe a imagem da nave alienígena**
-
-   Salve uma imagem de nave alienígena com o nome `alien-ship.jpeg` na pasta do projeto. Você pode usar qualquer imagem, mas ela deve ser redimensionada para 100x50 pixels para melhor visualização no jogo.
 
 ## Como Jogar
 
